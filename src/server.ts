@@ -463,6 +463,6 @@ app.get('/api/track-order/:orderNumber', async (req, res) => {
 })
 
 // ─── START SERVER ───────────────────────────────────────────
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`)
 })
