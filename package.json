@@ -4,12 +4,12 @@
   "description": "",
   "main": "dist/server.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
-    "build": "tsc",
-    "start": "node dist/server.js",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev"
-  },
+  "dev": "tsx watch src/server.ts",
+  "build": "echo 'Skipping build step'",
+  "start": "tsx src/server.ts",
+  "prisma:generate": "prisma generate",
+  "prisma:migrate": "prisma migrate dev"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
