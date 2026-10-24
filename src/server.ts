@@ -43,7 +43,7 @@ app.post('/api/auth/register', async (req, res) => {
   } catch (error: any) { res.status(500).json({ error: error.message }) }
 })
 
-// ─── 3. LOGIN (With Activity Time) ──────────────────────────
+// ─── 3. LOGIN ───────────────────────────────────────────────
 app.post('/api/auth/login', async (req, res) => {
   try {
     const { phone, password } = req.body
@@ -54,7 +54,6 @@ app.post('/api/auth/login', async (req, res) => {
     if (!isValidPassword) return res.status(401).json({ error: 'Invalid credentials' })
     if (user.status !== 'APPROVED') return res.status(403).json({ error: `Account ${user.status}. Wait for approval.` })
 
-    // Login time save
     await prisma.user.update({
       where: { id: user.id },
       data: { lastLogin: new Date() }
@@ -216,7 +215,7 @@ app.get('/api/deals', async (req, res) => {
   } catch (error: any) { res.status(500).json({ error: error.message }) }
 })
 
-// ─── 11. ORDERS SYSTEM (Deals fix ke sath) ──────────────────
+// ─── 11. ORDERS SYSTEM ──────────────────────────────────────
 app.post('/api/orders', async (req, res) => {
   try {
     const { customerName, customerPhone, type, address, paymentMethod, items } = req.body
@@ -226,10 +225,8 @@ app.post('/api/orders', async (req, res) => {
     const orderItemsData = []
 
     for (const item of items) {
-      // 1. Pehle Menu mein dhoonden
       let dbItem = await prisma.menuItem.findUnique({ where: { id: item.id } })
       
-      // 2. Agar Menu mein na mile, to Deal mein dhoonden (VIP Deal fix)
       if (!dbItem) {
         const dealItem = await prisma.deal.findUnique({ where: { id: item.id } })
         if (dealItem) {
@@ -243,7 +240,7 @@ app.post('/api/orders', async (req, res) => {
       orderItemsData.push({ menuItemId: dbItem.id, name: dbItem.name, price: dbItem.price, qty: item.qty })
     }
 
-        const gstAmount = 0
+    const gstAmount = 0
     const total = subtotal
     const orderNumber = `OGC-${Math.floor(1000 + Math.random() * 9000)}`
 
@@ -325,7 +322,7 @@ app.get('/api/admin/stats', authenticate, async (req: any, res) => {
   } catch (error: any) { res.status(500).json({ error: error.message }) }
 })
 
-// ─── 13. ROLE SPECIFIC APIS (Chef, Rider, Staff, Cashier) ───
+// ─── 13. ROLE SPECIFIC APIS ─────────────────────────────────
 app.get('/api/chef/orders', authenticate, async (req: any, res) => {
   try {
     const orders = await prisma.order.findMany({ where: { status: { in: ['PLACED', 'COOKING', 'READY'] } }, include: { items: true }, orderBy: { createdAt: 'asc' } })
@@ -447,7 +444,8 @@ app.delete('/api/admin/stock/:id', authenticate, async (req: any, res) => {
     res.json({ message: 'Item deleted' })
   } catch (error: any) { res.status(500).json({ error: error.message }) }
 })
-// ─── 47. PUBLIC: TRACK ORDER BY NUMBER ──────────────────────
+
+// ─── 17. PUBLIC: TRACK ORDER BY NUMBER ──────────────────────
 app.get('/api/track-order/:orderNumber', async (req, res) => {
   try {
     const { orderNumber } = req.params
@@ -455,16 +453,12 @@ app.get('/api/track-order/:orderNumber', async (req, res) => {
       where: { orderNumber },
       include: { items: true }
     })
-
-    if (!order) return res.status(404).json({ error: 'Order not found. Please check your Order Number.' })
-    
+    if (!order) return res.status(404).json({ error: 'Order not found.' })
     res.json(order)
   } catch (error: any) { res.status(500).json({ error: error.message }) }
 })
 
 // ─── START SERVER ───────────────────────────────────────────
-const PORT = process.env.PORT || 5000;
-
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`)
 })
